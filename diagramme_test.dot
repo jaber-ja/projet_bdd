@@ -1,0 +1,43 @@
+digraph DiagrammeER {
+  graph [rankdir=LR, splines=true, overlap=false, nodesep=0.55, ranksep=0.95, labelloc="t", fontsize=20, fontname="Helvetica", label="Plateforme de resumes de cours - Modele ER"];
+  node [shape=record, style="rounded,filled", fillcolor="#E8F0FE", color="#4A90E2", fontname="Helvetica", fontsize=10];
+  edge [color="#555555", arrowsize=0.8, fontname="Helvetica", fontsize=9];
+
+  Utilisateur [label="{Utilisateur|PK idUtilisateur\lnomUtilisateur\lemail (UQ)\ldateInscription\lnbPoints\lniveau (derive)\ltitreActif (derive/coherent)\l}"];
+  Cours [label="{Cours|PK codeCours\lnomCours\lfaculte\l}"];
+  AnneeAcademique [label="{AnneeAcademique|PK libelleAnnee\l}"];
+  EditionCours [label="{EditionCours|PK,FK codeCours\lPK,FK libelleAnnee\l}"];
+  Resume [label="{Resume|PK idResume\ltitre\ldescription\ldatePublication\lversion\lvisibilite\lnoteMoyenne (derivee)\l}"];
+  Evaluation [label="{Evaluation|PK,FK idEvaluateur\lPK,FK idResume\lnote\lcommentaire\ldateEvaluation\l}"];
+  TransactionPoints [label="{TransactionPoints|PK idTransaction\lFK idUtilisateur\ltypeTransaction (gain/depense)\lnbPoints\ldateTransaction\lmotif\l}"];
+  ObjetCosmetique [label="{ObjetCosmetique|PK idObjet\lnom\ldescription\lprixPoints\ltypeObjet\l}"];
+  PossessionObjet [label="{PossessionObjet|PK,FK idUtilisateur\lPK,FK idObjet\ldateAchat\lestActif\ldateActivation\l}"];
+  PeriodeClassement [label="{PeriodeClassement|PK idPeriode\ltypePeriode (mensuel/annuel)\ldateDebut\ldateFin\l}"];
+  HistoriqueClassement [label="{HistoriqueClassement|PK,FK idUtilisateur\lPK,FK idPeriode\lrang\lpointsConstates\l}"];
+
+  Contraintes [shape=note, fillcolor="#FFF8E1", color="#C9A227", label="Contraintes d'integrite:\l- Utilisateur.email unique\l- note dans [1..5] (ou [0..5])\l- Evaluation(idEvaluateur,idResume) unique\l- PossessionObjet(idUtilisateur,idObjet) unique\l- niveau derive de nbPoints\l- noteMoyenne derivee des evaluations\l- titreActif doit correspondre a un titre possede/actif\l- TransactionPoints: exactement une source metier\l"];
+  Hypotheses [shape=note, fillcolor="#F3E5F5", color="#8E44AD", label="Hypotheses de modelisation:\l- EditionCours pour lier Cours et AnneeAcademique\l- idResume, idTransaction, idPeriode sont techniques\l- Une possession suppose points suffisants a l'achat\l"];
+
+  Cours -> EditionCours [label="concerne", taillabel="(1,n)", headlabel="(1,1)", labeldistance=1.6];
+  AnneeAcademique -> EditionCours [label="situe", taillabel="(1,n)", headlabel="(1,1)", labeldistance=1.6];
+
+  Utilisateur -> Resume [label="publie", taillabel="(0,n)", headlabel="(1,1)", labeldistance=1.8];
+  EditionCours -> Resume [label="regroupe", taillabel="(0,n)", headlabel="(1,1)", labeldistance=1.8];
+
+  Utilisateur -> Evaluation [label="effectue", taillabel="(0,n)", headlabel="(1,1)", labeldistance=1.8];
+  Resume -> Evaluation [label="recoit", taillabel="(0,n)", headlabel="(1,1)", labeldistance=1.8];
+
+  Utilisateur -> TransactionPoints [label="possedeHistorique", taillabel="(0,n)", headlabel="(1,1)", labeldistance=2.0];
+  Resume -> TransactionPoints [label="generePublication", taillabel="(0,1)", headlabel="(0,1)", labeldistance=2.0];
+  Evaluation -> TransactionPoints [label="genereBonus", taillabel="(0,1)", headlabel="(0,1)", labeldistance=2.0];
+  PossessionObjet -> TransactionPoints [label="genereDepense", taillabel="(0,1)", headlabel="(0,1)", labeldistance=2.0];
+
+  Utilisateur -> PossessionObjet [label="possede", taillabel="(0,n)", headlabel="(1,1)", labeldistance=1.8];
+  ObjetCosmetique -> PossessionObjet [label="estPossedeVia", taillabel="(0,n)", headlabel="(1,1)", labeldistance=1.8];
+
+  PeriodeClassement -> HistoriqueClassement [label="contient", taillabel="(1,n)", headlabel="(1,1)", labeldistance=1.8];
+  Utilisateur -> HistoriqueClassement [label="figureDans", taillabel="(0,n)", headlabel="(1,1)", labeldistance=1.8];
+
+  TransactionPoints -> Contraintes [style=dashed, arrowhead=none, constraint=false];
+  EditionCours -> Hypotheses [style=dashed, arrowhead=none, constraint=false];
+}
