@@ -1,0 +1,211 @@
+# Source canonique du schéma EER - Plateforme de résumés de cours
+# Modifier ce fichier pour faire évoluer le modèle. Régénérer avec: make build
+
+metadata:
+  title: "Plateforme de resumes de cours - Modele ER"
+  description: "Modele entite-association pour la gestion des resumes, evaluations et points"
+
+entites:
+  Utilisateur:
+    attributs:
+      - { nom: idUtilisateur, pk: true }
+      - { nom: nomUtilisateur }
+      - { nom: email, uq: true }
+      - { nom: dateInscription }
+      - { nom: nbPoints }
+      - { nom: niveau, derive: true }
+      - { nom: titreActif, derive: true, coherent: true }
+
+  Cours:
+    attributs:
+      - { nom: codeCours, pk: true }
+      - { nom: nomCours }
+      - { nom: faculte }
+
+  AnneeAcademique:
+    attributs:
+      - { nom: libelleAnnee, pk: true }
+
+  EditionCours:
+    attributs:
+      - { nom: codeCours, pk: true, fk: true }
+      - { nom: libelleAnnee, pk: true, fk: true }
+
+  Resume:
+    attributs:
+      - { nom: idResume, pk: true }
+      - { nom: titre }
+      - { nom: description }
+      - { nom: datePublication }
+      - { nom: version }
+      - { nom: visibilite }
+      - { nom: noteMoyenne, derivee: true }
+
+  Evaluation:
+    attributs:
+      - { nom: idEvaluateur, pk: true, fk: true }
+      - { nom: idResume, pk: true, fk: true }
+      - { nom: note }
+      - { nom: commentaire }
+      - { nom: dateEvaluation }
+
+  TransactionPoints:
+    attributs:
+      - { nom: idTransaction, pk: true }
+      - { nom: idUtilisateur, fk: true }
+      - { nom: typeTransaction, qualif: "gain/depense" }
+      - { nom: nbPoints }
+      - { nom: dateTransaction }
+      - { nom: motif }
+
+  ObjetCosmetique:
+    attributs:
+      - { nom: idObjet, pk: true }
+      - { nom: nom }
+      - { nom: description }
+      - { nom: prixPoints }
+      - { nom: typeObjet }
+
+  PossessionObjet:
+    attributs:
+      - { nom: idUtilisateur, pk: true, fk: true }
+      - { nom: idObjet, pk: true, fk: true }
+      - { nom: dateAchat }
+      - { nom: estActif }
+      - { nom: dateActivation }
+
+  PeriodeClassement:
+    attributs:
+      - { nom: idPeriode, pk: true }
+      - { nom: typePeriode, qualif: "mensuel/annuel" }
+      - { nom: dateDebut }
+      - { nom: dateFin }
+
+  HistoriqueClassement:
+    attributs:
+      - { nom: idUtilisateur, pk: true, fk: true }
+      - { nom: idPeriode, pk: true, fk: true }
+      - { nom: rang }
+      - { nom: pointsConstates }
+
+# Associations: source -> cible avec cardinalités (min,max)
+# taillabel = cardinalité côté source, headlabel = côté cible
+relations:
+  - source: Cours
+    cible: EditionCours
+    label: concerne
+    taillabel: "(1,n)"
+    headlabel: "(1,1)"
+
+  - source: AnneeAcademique
+    cible: EditionCours
+    label: situe
+    taillabel: "(1,n)"
+    headlabel: "(1,1)"
+
+  - source: Utilisateur
+    cible: Resume
+    label: publie
+    taillabel: "(0,n)"
+    headlabel: "(1,1)"
+
+  - source: EditionCours
+    cible: Resume
+    label: regroupe
+    taillabel: "(0,n)"
+    headlabel: "(1,1)"
+
+  - source: Utilisateur
+    cible: Evaluation
+    label: effectue
+    taillabel: "(0,n)"
+    headlabel: "(1,1)"
+
+  - source: Resume
+    cible: Evaluation
+    label: recoit
+    taillabel: "(0,n)"
+    headlabel: "(1,1)"
+
+  - source: Utilisateur
+    cible: TransactionPoints
+    label: possedeHistorique
+    taillabel: "(0,n)"
+    headlabel: "(1,1)"
+
+  - source: Resume
+    cible: TransactionPoints
+    label: generePublication
+    taillabel: "(0,1)"
+    headlabel: "(0,1)"
+
+  - source: Evaluation
+    cible: TransactionPoints
+    label: genereBonus
+    taillabel: "(0,1)"
+    headlabel: "(0,1)"
+
+  - source: PossessionObjet
+    cible: TransactionPoints
+    label: genereDepense
+    taillabel: "(0,1)"
+    headlabel: "(0,1)"
+
+  - source: Utilisateur
+    cible: PossessionObjet
+    label: possede
+    taillabel: "(0,n)"
+    headlabel: "(1,1)"
+
+  - source: ObjetCosmetique
+    cible: PossessionObjet
+    label: estPossedeVia
+    taillabel: "(0,n)"
+    headlabel: "(1,1)"
+
+  - source: PeriodeClassement
+    cible: HistoriqueClassement
+    label: contient
+    taillabel: "(1,n)"
+    headlabel: "(1,1)"
+
+  - source: Utilisateur
+    cible: HistoriqueClassement
+    label: figureDans
+    taillabel: "(0,n)"
+    headlabel: "(1,1)"
+
+# Notes avec liens pointillés vers entités concernées
+liens_notes:
+  - source: TransactionPoints
+    cible: Contraintes
+  - source: EditionCours
+    cible: Hypotheses
+
+notes:
+  Contraintes:
+    style:
+      fillcolor: "#FFF8E1"
+      color: "#C9A227"
+      shape: note
+    lignes:
+      - "Contraintes d'integrite:"
+      - "- Utilisateur.email unique"
+      - "- note dans [1..5] (ou [0..5])"
+      - "- Evaluation(idEvaluateur,idResume) unique"
+      - "- PossessionObjet(idUtilisateur,idObjet) unique"
+      - "- niveau derive de nbPoints"
+      - "- noteMoyenne derivee des evaluations"
+      - "- titreActif doit correspondre a un titre possede/actif"
+      - "- TransactionPoints: exactement une source metier"
+
+  Hypotheses:
+    style:
+      fillcolor: "#F3E5F5"
+      color: "#8E44AD"
+      shape: note
+    lignes:
+      - "Hypotheses de modelisation:"
+      - "- EditionCours pour lier Cours et AnneeAcademique"
+      - "- idResume, idTransaction, idPeriode sont techniques"
+      - "- Une possession suppose points suffisants a l'achat"
