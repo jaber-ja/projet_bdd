@@ -1,12 +1,12 @@
-# Plateforme de résumés de cours – Modèle ER
+# Plateforme de resumes de cours - Modele ER
 
-Schéma entité-association pour la plateforme de gestion des résumés, évaluations et points.
+Schema entite-association pour la plateforme de gestion des resumes, evaluations et points.
 
-## Génération du diagramme
+## Generation du diagramme
 
 ```bash
 pip install -r requirements.txt   # PyYAML
-make build                        # Nécessite Graphviz (brew install graphviz)
+make build                        # Necessite Graphviz (brew install graphviz)
 ```
 
 Alternative avec venv :
@@ -17,4 +17,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 Sortie : `build/diagramme_er.dot`, `build/diagramme_er.svg`, `build/diagramme_er.png`
 
-Voir [docs/MAINTENANCE_DIAGRAMME.md](docs/MAINTENANCE_DIAGRAMME.md) pour modifier le modèle.
+## Documentation
+
+- Maintenance du diagramme: [docs/MAINTENANCE_DIAGRAMME.md](docs/MAINTENANCE_DIAGRAMME.md)
+- Modele relationnel final: [docs/MODELE_RELATIONNEL.md](docs/MODELE_RELATIONNEL.md)

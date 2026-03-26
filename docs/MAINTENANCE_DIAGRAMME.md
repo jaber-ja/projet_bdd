@@ -1,6 +1,6 @@
 # Maintenance du diagramme EER
 
-Ce guide décrit comment faire évoluer le modèle et régénérer le diagramme.
+Ce guide decrit comment faire evoluer le modele et regenerer le diagramme.
 
 ## Prérequis
 
@@ -12,11 +12,12 @@ Ce guide décrit comment faire évoluer le modèle et régénérer le diagramme.
 
 | Fichier | Rôle |
 |---------|------|
-| `model/diagram_model.yaml` | **Source canonique** du schéma (entités, relations, contraintes) |
+| `model/diagram_model.yaml` | **Source canonique** du schema (entites, relations, contraintes) |
 | `tools/generate_er_dot.py` | Générateur YAML → DOT |
 | `build/diagramme_er.dot` | Fichier DOT produit (artefact, ne pas éditer) |
 | `build/diagramme_er.svg` | Diagramme SVG |
 | `build/diagramme_er.png` | Diagramme PNG |
+| `docs/MODELE_RELATIONNEL.md` | Modele relationnel final (PK/FK/contraintes/hypotheses) |
 
 Les anciens fichiers `er_config/`, `diagramme_test.dot` et `generer_diagramme.py` restent pour compatibilité, mais la source officielle est désormais `model/diagram_model.yaml`.
 

@@ -172,6 +172,19 @@ def validate_cardinality(c: str) -> bool:
     return bool(re.match(r'^\(\d+,(\d+|n)\)$', s))
 
 
+def next_output_version_dir(out_dir: Path) -> Path:
+    """Retourne le prochain dossier de version: out_dir/vN."""
+    pattern = re.compile(r"^v(\d+)$")
+    max_version = 0
+    for candidate in out_dir.iterdir():
+        if not candidate.is_dir():
+            continue
+        match = pattern.match(candidate.name)
+        if match:
+            max_version = max(max_version, int(match.group(1)))
+    return out_dir / f"v{max_version + 1}"
+
+
 def build_dot(model: dict, use_html_labels: bool = True) -> str:
     """Construit le contenu DOT complet à partir du modèle."""
     meta = model.get("metadata", {})
@@ -179,7 +192,9 @@ def build_dot(model: dict, use_html_labels: bool = True) -> str:
 
     lines = [
         'digraph DiagrammeER {',
-        '  graph [rankdir=LR, splines=true, overlap=false, nodesep=0.55, ranksep=0.95,',
+        '  graph [rankdir=LR, splines=ortho, overlap=false,',
+        '         size="11.69,8.27!", ratio=fill, dpi=200,',
+        '         margin=0.25, pad=0.25, nodesep=0.65, ranksep=1.10,',
         f'         labelloc="t", fontsize=20, fontname="Helvetica", label="{title}"];',
         '  node [fontname="Helvetica", fontsize=10];',
         '  edge [color="#555555", arrowsize=0.8, fontname="Helvetica", fontsize=9];',
@@ -247,7 +262,9 @@ def main():
 
     out_dir = args.out_dir.resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
-    dot_path = out_dir / f"{OUTPUT_BASENAME}.dot"
+    version_dir = next_output_version_dir(out_dir)
+    version_dir.mkdir(parents=True, exist_ok=False)
+    dot_path = version_dir / f"{OUTPUT_BASENAME}.dot"
 
     model = load_model()
     dot_content = build_dot(model, use_html_labels=not args.no_html)
@@ -257,7 +274,7 @@ def main():
     for fmt, flag in [("svg", args.svg), ("png", args.png)]:
         if not flag:
             continue
-        out_path = out_dir / f"{OUTPUT_BASENAME}.{fmt}"
+        out_path = version_dir / f"{OUTPUT_BASENAME}.{fmt}"
         try:
             subprocess.run(
                 ["dot", f"-T{fmt}", "-o", str(out_path), str(dot_path)],

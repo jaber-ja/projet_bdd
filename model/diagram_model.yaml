@@ -3,7 +3,7 @@
 
 metadata:
   title: "Plateforme de resumes de cours - Modele ER"
-  description: "Modele entite-association pour la gestion des resumes, evaluations et points"
+  description: "Modele entite-association complet pour le projet INFOH303"
 
 entites:
   Utilisateur:
@@ -12,9 +12,13 @@ entites:
       - { nom: nomUtilisateur }
       - { nom: email, uq: true }
       - { nom: dateInscription }
-      - { nom: nbPoints }
+
+  ProfilUtilisateur:
+    attributs:
+      - { nom: idUtilisateur, pk: true, fk: true }
+      - { nom: pointsTotal }
       - { nom: niveau, derive: true }
-      - { nom: titreActif, derive: true, coherent: true }
+      - { nom: idTitreActif, fk: true, nullable: true }
 
   Cours:
     attributs:
@@ -24,20 +28,25 @@ entites:
 
   AnneeAcademique:
     attributs:
-      - { nom: libelleAnnee, pk: true }
+      - { nom: idAnnee, pk: true }
+      - { nom: libelleAnnee, uq: true }
+      - { nom: dateDebut }
+      - { nom: dateFin }
 
-  EditionCours:
+  CoursAnnee:
     attributs:
       - { nom: codeCours, pk: true, fk: true }
-      - { nom: libelleAnnee, pk: true, fk: true }
+      - { nom: idAnnee, pk: true, fk: true }
 
   Resume:
     attributs:
       - { nom: idResume, pk: true }
+      - { nom: idAuteur, fk: true }
+      - { nom: codeCours, fk: true }
+      - { nom: idAnnee, fk: true }
       - { nom: titre }
       - { nom: description }
       - { nom: datePublication }
-      - { nom: version }
       - { nom: visibilite }
       - { nom: noteMoyenne, derivee: true }
 
@@ -57,6 +66,8 @@ entites:
       - { nom: nbPoints }
       - { nom: dateTransaction }
       - { nom: motif }
+      - { nom: sourceType, qualif: "publication/evaluation/achat/ajustement" }
+      - { nom: sourceId, nullable: true }
 
   ObjetCosmetique:
     attributs:
@@ -66,39 +77,41 @@ entites:
       - { nom: prixPoints }
       - { nom: typeObjet }
 
+  AchatObjet:
+    attributs:
+      - { nom: idAchat, pk: true }
+      - { nom: idUtilisateur, fk: true }
+      - { nom: idObjet, fk: true }
+      - { nom: dateAchat }
+      - { nom: prixPointsPaye }
+
   PossessionObjet:
     attributs:
-      - { nom: idUtilisateur, pk: true, fk: true }
-      - { nom: idObjet, pk: true, fk: true }
-      - { nom: dateAchat }
-      - { nom: estActif }
-      - { nom: dateActivation }
+      - { nom: idPossession, pk: true }
+      - { nom: idUtilisateur, fk: true }
+      - { nom: idObjet, fk: true }
+      - { nom: idAchat, fk: true }
+      - { nom: dateObtention }
+      - { nom: estEquipe }
 
-  PeriodeClassement:
-    attributs:
-      - { nom: idPeriode, pk: true }
-      - { nom: typePeriode, qualif: "mensuel/annuel" }
-      - { nom: dateDebut }
-      - { nom: dateFin }
-
-  HistoriqueClassement:
+  ClassementCourant:
     attributs:
       - { nom: idUtilisateur, pk: true, fk: true }
-      - { nom: idPeriode, pk: true, fk: true }
       - { nom: rang }
       - { nom: pointsConstates }
+      - { nom: dateCalcul }
 
 # Associations: source -> cible avec cardinalités (min,max)
 # taillabel = cardinalité côté source, headlabel = côté cible
 relations:
   - source: Cours
-    cible: EditionCours
+    cible: CoursAnnee
     label: concerne
     taillabel: "(1,n)"
     headlabel: "(1,1)"
 
   - source: AnneeAcademique
-    cible: EditionCours
+    cible: CoursAnnee
     label: situe
     taillabel: "(1,n)"
     headlabel: "(1,1)"
@@ -109,10 +122,16 @@ relations:
     taillabel: "(0,n)"
     headlabel: "(1,1)"
 
-  - source: EditionCours
+  - source: CoursAnnee
     cible: Resume
     label: regroupe
     taillabel: "(0,n)"
+    headlabel: "(1,1)"
+
+  - source: Utilisateur
+    cible: ProfilUtilisateur
+    label: possedeProfil
+    taillabel: "(1,1)"
     headlabel: "(1,1)"
 
   - source: Utilisateur
@@ -133,23 +152,17 @@ relations:
     taillabel: "(0,n)"
     headlabel: "(1,1)"
 
-  - source: Resume
-    cible: TransactionPoints
-    label: generePublication
-    taillabel: "(0,1)"
-    headlabel: "(0,1)"
+  - source: Utilisateur
+    cible: AchatObjet
+    label: achete
+    taillabel: "(0,n)"
+    headlabel: "(1,1)"
 
-  - source: Evaluation
-    cible: TransactionPoints
-    label: genereBonus
-    taillabel: "(0,1)"
-    headlabel: "(0,1)"
-
-  - source: PossessionObjet
-    cible: TransactionPoints
-    label: genereDepense
-    taillabel: "(0,1)"
-    headlabel: "(0,1)"
+  - source: ObjetCosmetique
+    cible: AchatObjet
+    label: concerneAchat
+    taillabel: "(0,n)"
+    headlabel: "(1,1)"
 
   - source: Utilisateur
     cible: PossessionObjet
@@ -163,49 +176,18 @@ relations:
     taillabel: "(0,n)"
     headlabel: "(1,1)"
 
-  - source: PeriodeClassement
-    cible: HistoriqueClassement
-    label: contient
-    taillabel: "(1,n)"
+  - source: AchatObjet
+    cible: PossessionObjet
+    label: creePossession
+    taillabel: "(1,1)"
     headlabel: "(1,1)"
 
   - source: Utilisateur
-    cible: HistoriqueClassement
+    cible: ClassementCourant
     label: figureDans
-    taillabel: "(0,n)"
+    taillabel: "(0,1)"
     headlabel: "(1,1)"
 
-# Notes avec liens pointillés vers entités concernées
-liens_notes:
-  - source: TransactionPoints
-    cible: Contraintes
-  - source: EditionCours
-    cible: Hypotheses
+liens_notes: []
 
-notes:
-  Contraintes:
-    style:
-      fillcolor: "#FFF8E1"
-      color: "#C9A227"
-      shape: note
-    lignes:
-      - "Contraintes d'integrite:"
-      - "- Utilisateur.email unique"
-      - "- note dans [1..5] (ou [0..5])"
-      - "- Evaluation(idEvaluateur,idResume) unique"
-      - "- PossessionObjet(idUtilisateur,idObjet) unique"
-      - "- niveau derive de nbPoints"
-      - "- noteMoyenne derivee des evaluations"
-      - "- titreActif doit correspondre a un titre possede/actif"
-      - "- TransactionPoints: exactement une source metier"
-
-  Hypotheses:
-    style:
-      fillcolor: "#F3E5F5"
-      color: "#8E44AD"
-      shape: note
-    lignes:
-      - "Hypotheses de modelisation:"
-      - "- EditionCours pour lier Cours et AnneeAcademique"
-      - "- idResume, idTransaction, idPeriode sont techniques"
-      - "- Une possession suppose points suffisants a l'achat"
+notes: {}
